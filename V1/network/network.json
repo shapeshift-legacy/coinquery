@@ -1,0 +1,93 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Core networking infrastructure for CoinQuery",
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default"
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "VPCGatewayAttachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": { "Ref": "VPC" },
+        "InternetGatewayId": { "Ref": "InternetGateway" }
+      }
+    },
+    "Subnet0": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/24",
+        "AvailabilityZone": { "Fn::Sub": "${AWS::Region}a" },
+        "VpcId": { "Ref": "VPC" },
+        "MapPublicIpOnLaunch": true
+      }
+    },
+    "Subnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.1.0/24",
+        "AvailabilityZone": { "Fn::Sub": "${AWS::Region}b" },
+        "VpcId": { "Ref": "VPC" },
+        "MapPublicIpOnLaunch": true
+      }
+    },
+    "RouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": { "Ref": "VPC" }
+      }
+    },
+    "InternetRoute": {
+      "Type": "AWS::EC2::Route",
+      "DependsOn": "InternetGateway",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": { "Ref": "InternetGateway" },
+        "RouteTableId": { "Ref": "RouteTable" }
+      }
+    },
+    "Subnet0RouteAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "RouteTable" },
+        "SubnetId": { "Ref": "Subnet0" }
+      }
+    },
+    "Subnet1RouteAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "RouteTable" },
+        "SubnetId": { "Ref": "Subnet1" }
+      }
+    }
+  },
+  "Outputs": {
+    "vpc": {
+      "Value": { "Ref": "VPC" },
+      "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-VPC" } }
+    },
+    "subnet0": {
+      "Value": { "Ref": "Subnet0" },
+      "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-Subnet0" } }
+    },
+    "subnet1": {
+      "Value": { "Ref": "Subnet1" },
+      "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-Subnet1" } }
+    },
+    "subnet0AZ": {
+      "Value": { "Fn::GetAtt": [ "Subnet0", "AvailabilityZone" ] },
+      "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-Subnet0AZ" } }
+    },
+    "subnet1AZ": {
+      "Value": { "Fn::GetAtt": [ "Subnet1", "AvailabilityZone" ] },
+      "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-Subnet1AZ" } }
+    }
+  }
+}

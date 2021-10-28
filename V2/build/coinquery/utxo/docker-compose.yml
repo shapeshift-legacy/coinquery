@@ -1,0 +1,42 @@
+version: '3.4'
+services:
+  api:
+    container_name: "cq-api"
+    build:
+      context: .
+      args:
+        - COIN=${COIN}
+        - ENVIRONMENT=${ENVIRONMENT}
+        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ../../../../V2:/app
+      - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - ingester
+    restart: on-failure
+  postgres:
+    container_name: "cq-postgres"
+    image: postgres:10.6
+    restart: always
+    environment:
+      POSTGRES_DB: indexer
+      POSTGRES_USER: indexer
+    ports:
+      - 5432:5432
+    command: postgres -c 'max_connections=500'
+  ingester:
+    container_name: "cq-ingester"
+    build:
+      context: ../../ingester-sql-ddl
+      dockerfile: Dockerfile
+      args:
+        - COIN=${COIN}
+    depends_on:
+      - "postgres"
+    command: sqitch --db-user indexer deploy db:pg://indexer@postgres:5432/indexer
+    restart: on-failure

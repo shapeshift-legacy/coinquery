@@ -1,0 +1,24 @@
+@startuml
+autonumber
+title Coinquery Get UTXOs By Address
+
+entity Watchtower
+entity CoinQuery
+database CoinQueryDB
+
+note over CoinQuery: REST API
+note over CoinQueryDB: Postgres
+
+Watchtower -> CoinQuery: GET /addrs/{ADDR1, ADDR2 ... ADDRN}/utxo
+activate CoinQuery
+loop array of addrs
+    CoinQuery -> CoinQueryDB: query utxos by addr
+    activate CoinQueryDB
+    CoinQueryDB -> CoinQuery: utxos
+    deactivate CoinQueryDB
+end
+CoinQuery -> CoinQuery: concatenate utxos
+CoinQuery --> Watchtower: response: {list of utxos}
+deactivate CoinQuery
+
+@enduml

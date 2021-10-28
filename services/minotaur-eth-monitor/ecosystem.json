@@ -1,0 +1,25 @@
+{
+  "apps": [
+    {
+      "name": "eth-monitor",
+      "script": "./modules/ethereum/scripts/eth-scan.js",
+      "watch": true,
+      "output": "/var/log/combined.log",
+      "error": "/var/log/combined.log"
+    },
+    {
+      "name": "receipt-scan",
+      "script": "./modules/ethereum/scripts/scan-receipts.js",
+      "watch": true,
+      "output": "/var/log/combined.log",
+      "error": "/var/log/combined.log"
+    },
+    {
+      "name": "eth-validate-blocks",
+      "script": "./modules/ethereum/scripts/eth-validate-blocks.js",
+      "watch": true,
+      "output": "/var/log/combined.log",
+      "error": "/var/log/combined.log"
+    }
+  ]
+}

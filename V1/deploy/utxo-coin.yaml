@@ -1,0 +1,532 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: UTXO Coin Stack (Insight)
+Parameters:
+  SSLCertificate:
+    Type: String
+    Description: The SSL Certificate for HTTPS connections.
+  IsProdConditon:
+    Type: String
+    Description: Flag for production scaling instances.
+  NetworkStack:
+    Type: String
+    Default: coinquery-network
+    Description: The CloudFormation stack exporting our desired VPC and networking configuration.
+  ProductionRegion:
+    Type: String
+    Default: us-east-1
+    Description: Region where production coin stacks are deployed.  Stacks in this region only allow SSH access via the bastion server
+  Image:
+    Type: String
+    Description: Fully qualified ECR image tag for the node/insight.
+  HealthCheckImage:
+    Type: String
+    Description: Image to sit along side node for target group health monitor to hit
+  NumTasksNInstances:
+    Type: String
+    Description: Number of tasks/instances to apply to coin
+  NeedsSnapshot:
+    Type: String
+    Description: Whether or not your stack needs a snapshot deployed alongside
+  ChainType:
+    Type: String
+    Description: Tag name for snappy to know what to snapshot
+  RpcHostNPort:
+    Type: String
+    Description: connection info for underlying node as (ex. localhost:8332)
+  RpcUser:
+    Type: String
+    Description: username for node RPC
+  RpcPass:
+    Type: String
+    Description: password for node RPC
+  InsightHostNPort:
+    Type: String
+    Description: connection info for insight as (ex. http://localhost:3001)
+  ScriptBucket:
+    Type: String
+    Description: userdata script bucket name
+  ScriptKey:
+    Type: String
+    Description: userdata script bucket's key name
+  VolumeSize:
+    Type: String
+    Description: volume size for coin
+Conditions:
+  IsProd: !Equals
+    - !Ref 'IsProdConditon'
+    - 'true'
+  IsProdRegion: !Equals 
+    - !Ref 'AWS::Region'
+    - !Ref 'ProductionRegion'
+  NeedsSnapshot: !Equals
+    - !Ref 'NeedsSnapshot'
+    - 'true'
+  CreateUnlessSnapshotOnly:
+    !Not [!Equals [!Ref NumTasksNInstances, '0']]
+Mappings:
+  AWSRegionToAMI:
+    us-east-2:
+      AMIID: ami-956e52f0
+    us-east-1:
+      AMIID: ami-5253c32d
+    us-west-2:
+      AMIID: ami-d2f489aa
+    us-west-1:
+      AMIID: ami-6b81980b
+    eu-west-3:
+      AMIID: ami-ca75c4b7
+    eu-west-2:
+      AMIID: ami-3622cf51
+    eu-west-1:
+      AMIID: ami-c91624b0
+    eu-central-1:
+      AMIID: ami-10e6c8fb
+    ap-northeast-2:
+      AMIID: ami-7c69c112
+    ap-northeast-1:
+      AMIID: ami-f3f8098c
+    ap-southeast-2:
+      AMIID: ami-bc04d5de
+    ap-southeast-1:
+      AMIID: ami-b75a6acb
+    ca-central-1:
+      AMIID: ami-da6cecbe
+    ap-south-1:
+      AMIID: ami-c7072aa8
+    sa-east-1:
+      AMIID: ami-a1e2becd
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName} Security Group'
+      GroupDescription: Security Group for UTXO coins
+      VpcId: !ImportValue
+        Fn::Sub: ${NetworkStack}-VPC
+      SecurityGroupIngress:
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: '3001'
+          ToPort: '3001'
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: '3000'
+          ToPort: '3000'
+        - CidrIp: !If
+            - IsProdRegion
+            - !Join 
+              - ''
+              - [!ImportValue cq-bastion-EIP1,'/32']
+            - '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+        - CidrIp: !If
+            - IsProdRegion
+            - !Join 
+              - ''
+              - [!ImportValue cq-bastion-EIP2,'/32']
+            - '0.0.0.0/0'
+          IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+      SecurityGroupEgress:
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: '-1'
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Condition: CreateUnlessSnapshotOnly
+    Properties:
+      Type: application
+      Name: !Sub '${AWS::StackName}'
+      Scheme: internet-facing
+      Subnets:
+        - !ImportValue
+          Fn::Sub: ${NetworkStack}-Subnet0
+        - !ImportValue
+          Fn::Sub: ${NetworkStack}-Subnet1
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '90'
+      SecurityGroups:
+        - !Ref 'SecurityGroup'
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Condition: CreateUnlessSnapshotOnly
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref 'TargetGroup'
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /*
+      ListenerArn: !Ref 'Listener'
+      Priority: 1
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: CreateUnlessSnapshotOnly
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref 'TargetGroup'
+      LoadBalancerArn: !Ref 'LoadBalancer'
+      Port: '443'
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref 'SSLCertificate'
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Condition: CreateUnlessSnapshotOnly
+    DependsOn: LoadBalancer
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /healthcheck
+      HealthCheckPort: '3000'
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+      Name: !Sub '${AWS::StackName}'
+      Port: 3001
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '5'
+      UnhealthyThresholdCount: 4
+      VpcId: !ImportValue
+        Fn::Sub: ${NetworkStack}-VPC
+  Cluster:
+    Condition: CreateUnlessSnapshotOnly
+    Type: AWS::ECS::Cluster
+  SnapshotCluster:
+    Type: AWS::ECS::Cluster
+    Condition: NeedsSnapshot
+  serviceSnapshot:
+    Type: AWS::ECS::Service
+    Condition: NeedsSnapshot
+    DependsOn: SnapshotInstance
+    Properties:
+      Cluster: !Ref 'SnapshotCluster'
+      ServiceName: !Sub '${AWS::StackName}-snapshot'
+      DesiredCount: 1
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      TaskDefinition: !Ref 'TaskDefinitionSnapshot'
+  TaskDefinitionSnapshot:
+    Type: AWS::ECS::TaskDefinition
+    Condition: NeedsSnapshot
+    Properties:
+      Family: !Sub '${AWS::StackName}-snapshot'
+      NetworkMode: host
+      ContainerDefinitions:
+        - Name: !Sub '${AWS::StackName}-snapshot'
+          Cpu: 512
+          Essential: true
+          Image: !Ref 'Image'
+          Memory: 7500
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'LogGroup'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: container
+          MountPoints:
+            - ContainerPath: /home/cqdev/.blockchain
+              SourceVolume: blockchain
+          PortMappings:
+            - ContainerPort: 3001
+              HostPort: 3001
+      Volumes:
+        - Name: blockchain
+          Host:
+            SourcePath: /mnt/blockchain
+  Service:
+    Type: AWS::ECS::Service
+    Condition: CreateUnlessSnapshotOnly
+    DependsOn: AutoScalingGroup
+    Properties:
+      HealthCheckGracePeriodSeconds: 3600
+      Cluster: !Ref 'Cluster'
+      ServiceName: !Sub '${AWS::StackName}'
+      DesiredCount: !Ref 'NumTasksNInstances'
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      Role: !Ref 'ServiceRole'
+      LoadBalancers:
+        - ContainerName: !Sub '${AWS::StackName}'
+          ContainerPort: 3001
+          TargetGroupArn: !Ref 'TargetGroup'
+      TaskDefinition: !Ref 'TaskDefinition'
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Condition: CreateUnlessSnapshotOnly
+    Properties:
+      Family: !Sub '${AWS::StackName}'
+      NetworkMode: host
+      ContainerDefinitions:
+        - Name: !Sub '${AWS::StackName}'
+          Cpu: 512
+          Essential: true
+          Image: !Ref 'Image'
+          Memory: 7500
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'LogGroup'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: container
+          MountPoints:
+            - ContainerPath: /home/cqdev/.blockchain
+              SourceVolume: blockchain
+          PortMappings:
+            - ContainerPort: 3001
+              HostPort: 3001
+            - ContainerPort: 8332
+              HostPort: 8332
+        - Name: !Sub '${AWS::StackName}-Health-Checker'
+          Cpu: 50
+          Essential: true
+          Image: !Ref 'HealthCheckImage'
+          Memory: 200
+          Environment:
+            - Name: RPC_HOST_N_PORT
+              Value: !Ref 'RpcHostNPort'
+            - Name: RPC_USER
+              Value: !Ref 'RpcUser'
+            - Name: RPC_PASS
+              Value: !Ref 'RpcPass'
+            - Name: INSIGHT_HOST_N_PORT
+              Value: !Ref 'InsightHostNPort'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'LogGroup'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: container
+          PortMappings:
+            - ContainerPort: 3000
+              HostPort: 3000
+      Volumes:
+        - Name: blockchain
+          Host:
+            SourcePath: /mnt/blockchain
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '${AWS::StackName}'
+      RetentionInDays: !If
+        - IsProd
+        - '3653'
+        - '3'
+  SnapshotInstance:
+    Type: AWS::EC2::Instance
+    Condition: NeedsSnapshot
+    Properties:
+      ImageId: !FindInMap
+        - AWSRegionToAMI
+        - !Ref 'AWS::Region'
+        - AMIID
+      InstanceType: m4.large
+      EbsOptimized: true
+      IamInstanceProfile: !Ref 'InstanceProfile'
+      KeyName: !Sub 'ssh-${AWS::Region}'
+      SecurityGroupIds:
+        - !Ref 'SecurityGroup'
+      SubnetId: !ImportValue
+        Fn::Sub: ${NetworkStack}-Subnet0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-snapshot-instance'
+        - Key: Team
+          Value: coinquery
+        - Key: InstanceJob
+          Value: Snapshotter
+        - Key: ChainType
+          Value: !Ref 'ChainType'
+      UserData: !Base64
+        Fn::Join:
+          - ''
+          - - "#!/bin/bash -x\n"
+            - "yum install -y aws-cfn-bootstrap curl unzip\n"
+            - "## Install AWS CLI\n"
+            - "curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip\n"
+            - "unzip awscli-bundle.zip\n"
+            - "./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws\n"
+            - "export PATH=/usr/local/bin:$PATH\n"
+            - 'aws s3 cp s3://'
+            - !Ref 'ScriptBucket'
+            - '/'
+            - !Ref 'ScriptKey'
+            - " localUserData.sh\n"
+            - 'bash localUserData.sh '
+            - !Ref 'AWS::Region'
+            - ' '
+            - !Ref 'ChainType'
+            - ' '
+            - !Sub '${AWS::StackName}-snapshot-volume'
+            - ' '
+            - !Ref 'VolumeSize'
+            - ' '
+            - !ImportValue
+              Fn::Sub: ${NetworkStack}-Subnet0AZ
+            - ' '
+            - !Ref 'SnapshotCluster'
+            - ' '
+            - !Ref 'AWS::StackName'
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Condition: CreateUnlessSnapshotOnly
+    Properties:
+      HealthCheckGracePeriod: 3600
+      DesiredCapacity: !Ref 'NumTasksNInstances'
+      LaunchConfigurationName: !Ref 'LaunchConfiguration'
+      MaxSize: '6'
+      MinSize: !Ref 'NumTasksNInstances'
+      VPCZoneIdentifier:
+        - !ImportValue
+          Fn::Sub: ${NetworkStack}-Subnet0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-instance'
+          PropagateAtLaunch: true
+        - Key: Team
+          Value: coinquery
+          PropagateAtLaunch: true
+        - Key: Prod
+          Value: !Ref 'IsProdConditon'
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: !Ref 'NumTasksNInstances'
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        PauseTime: PT15M
+        SuspendProcesses:
+          - HealthCheck
+          - ReplaceUnhealthy
+          - AZRebalance
+          - AlarmNotification
+          - ScheduledActions
+        WaitOnResourceSignals: true
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Condition: CreateUnlessSnapshotOnly
+    Properties:
+      EbsOptimized: true
+      ImageId: !FindInMap
+        - AWSRegionToAMI
+        - !Ref 'AWS::Region'
+        - AMIID
+      InstanceType: m4.large
+      IamInstanceProfile: !Ref 'InstanceProfile'
+      InstanceMonitoring: true
+      KeyName: !Sub 'ssh-${AWS::Region}'
+      SecurityGroups:
+        - !Ref 'SecurityGroup'
+      UserData: !Base64
+        Fn::Join:
+          - ''
+          - - "#!/bin/bash -x\n"
+            - "yum install -y aws-cfn-bootstrap curl unzip\n"
+            - "## Install AWS CLI\n"
+            - "curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip\n"
+            - "unzip awscli-bundle.zip\n"
+            - "./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws\n"
+            - "export PATH=/usr/local/bin:$PATH\n"
+            - 'aws s3 cp s3://'
+            - !Ref 'ScriptBucket'
+            - '/'
+            - !Ref 'ScriptKey'
+            - " localUserData.sh\n"
+            - 'bash localUserData.sh '
+            - !Ref 'AWS::Region'
+            - ' '
+            - !Ref 'ChainType'
+            - ' '
+            - !Sub '${AWS::StackName}-volume'
+            - ' '
+            - !Ref 'VolumeSize'
+            - ' '
+            - !ImportValue
+              Fn::Sub: ${NetworkStack}-Subnet0AZ
+            - ' '
+            - !Ref 'Cluster'
+            - ' '
+            - !Ref 'AWS::StackName'
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref 'EC2Role'
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ec2-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:CreateCluster
+                  - ecs:DeregisterContainerInstance
+                  - ecs:DiscoverPollEndpoint
+                  - ecs:Poll
+                  - ecs:RegisterContainerInstance
+                  - ecs:StartTelemetrySession
+                  - ecs:Submit*
+                  - ecr:*
+                  - s3:*
+                  - ec2:*
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - cloudformation:Describe*
+                Resource: '*'
+  ServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ecs-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:Describe*
+                  - s3:*
+                  - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+                  - elasticloadbalancing:Describe*
+                  - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+                  - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:RegisterTargets
+                Resource: '*'

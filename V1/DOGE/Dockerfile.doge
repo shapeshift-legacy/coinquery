@@ -1,0 +1,70 @@
+FROM ubuntu:xenial
+MAINTAINER KeepKey <tech@keepkey.com>
+
+# USER root (default)
+
+# create cqdev user
+RUN useradd --create-home --shell /bin/bash cqdev 
+
+# persistent storage of blockchain data in a docker volume on the host
+ENV BITCOIN_ABC_DATA=/home/cqdev/.blockchain
+RUN mkdir -p ${BITCOIN_ABC_DATA}
+RUN chmod 700 /home/cqdev
+RUN chown -R cqdev:cqdev /home/cqdev
+VOLUME [${BITCOIN_ABC_DATA}]
+
+############# Install Doge ####################
+
+# install utilities and dependencies 
+RUN apt-get update
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN apt-get install procps vim libtool curl pkg-config build-essential git libzmq3-dev make g++ --assume-yes
+
+RUN apt install python-minimal --assume-yes
+# fetch dogecoin
+WORKDIR /opt
+RUN curl -L https://github.com/dogecoin/dogecoin/releases/download/v1.10.0/dogecoin-1.10.0-linux64.tar.gz > dogecoin-1.10.0-linux64.tar.gz \
+    && tar -xzf *.tar.gz \
+    && rm *.tar.gz
+ENV PATH=$PATH:/opt/dogecoin-1.10.0/bin/
+
+##### install jq ######
+WORKDIR /opt
+RUN mkdir /opt/jq-1.5
+RUN curl -L https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 > /opt/jq-1.5/jq
+RUN chmod 111 /opt/jq-1.5/jq
+ENV PATH=$PATH:/opt/jq-1.5/
+
+############# Install Node.js ####################
+
+WORKDIR /home/cqdev
+RUN curl -SL https://deb.nodesource.com/setup_0.10 | bash
+RUN apt-get install -y nodejs=0.10.48-*
+
+# remove build deps
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+############# Install Insight ####################
+
+USER cqdev
+ENV NPM_CONFIG_PREFIX=/home/cqdev/.npm-global
+ENV PATH=$PATH:/home/cqdev/.npm-global/bin
+RUN git clone https://github.com/blockrange/insight-api-dogecoin.git
+
+WORKDIR /home/cqdev/insight-api-dogecoin
+RUN git fetch && git checkout 46cc72a60a310a3fbdbb4ea44acf6f27e75d4d03
+RUN npm i
+
+# insight api, p2p, rpc ports
+EXPOSE 3001 22556 8332
+
+COPY start.sh /home/cqdev/start.sh
+COPY dogecoin.conf /home/cqdev/insight-api-dogecoin/
+COPY config.js /home/cqdev/insight-api-dogecoin/config/
+ENV HOME=/home/cqdev/.blockchain
+
+ARG COMMIT
+ENV COMMIT ${COMMIT:-undefined}
+
+CMD ["/home/cqdev/start.sh"]

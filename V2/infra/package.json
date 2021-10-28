@@ -1,0 +1,21 @@
+{
+    "name": "cq-infra",
+    "devDependencies": {
+        "@types/node": "^8.0.0"
+    },
+    "dependencies": {
+        "@foxcookieco/infrastructure": "^0.1.153-0",
+        "@pulumi/aws": "^1.0.0",
+        "@pulumi/awsx": "^0.18.10",
+        "@pulumi/pulumi": "^1.0.0",
+        "typescript": "^3.8.3"
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "semi": false,
+        "singleQuote": true,
+        "printWidth": 100,
+        "trailingComma": "none",
+        "arrowParens": "avoid"
+    }
+}

@@ -1,0 +1,21 @@
+@startuml
+autonumber
+title Coinquery Send Transaction
+
+entity Watchtower
+entity CoinQuery
+entity Cointainer
+
+note over CoinQuery: REST API
+note over Cointainer: RPC
+
+Watchtower -> CoinQuery: POST tx/send {signed rawtx}
+activate CoinQuery
+activate Cointainer
+CoinQuery -> Cointainer: broadcast raw tx
+Cointainer -> CoinQuery: txid
+deactivate Cointainer
+CoinQuery --> Watchtower: response: {txid}
+
+deactivate CoinQuery
+@enduml

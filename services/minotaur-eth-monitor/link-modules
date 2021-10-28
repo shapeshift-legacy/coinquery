@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Always needed
+cd modules/common
+yarn
+yarn link
+
+# Only needed if you're installing the Web API
+cd ../api
+yarn link common
+yarn
+
+# Only needed if your installing Bitcoin monitoring
+cd ../bitcoin
+yarn link common
+yarn
+
+# Only needed if your installing Ethereum monitoring
+cd ../ethereum
+yarn link common
+yarn

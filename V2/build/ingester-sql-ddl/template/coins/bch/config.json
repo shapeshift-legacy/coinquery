@@ -1,0 +1,6 @@
+{
+    "rootTemplate": "txo",
+    "parameters": {
+        "schema": "bch"
+    }
+}

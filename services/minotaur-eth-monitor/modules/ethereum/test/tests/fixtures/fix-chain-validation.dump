@@ -1,0 +1,688 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.6
+-- Dumped by pg_dump version 10.1
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE addresses (
+    hash character varying(255) DEFAULT ''::character varying NOT NULL,
+    balance numeric DEFAULT 0 NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: blocks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE blocks (
+    index integer NOT NULL,
+    hash character varying(255) DEFAULT ''::character varying NOT NULL,
+    "timeMined" timestamp with time zone NOT NULL,
+    bloom text NOT NULL,
+    coinbase character varying(255) DEFAULT ''::character varying NOT NULL,
+    difficulty bigint DEFAULT 0 NOT NULL,
+    "extraData" character varying(255) DEFAULT ''::character varying NOT NULL,
+    "gasLimit" bigint DEFAULT 0 NOT NULL,
+    "parentHash" character varying(255) DEFAULT ''::character varying NOT NULL,
+    "receiptsRoot" character varying(255) DEFAULT ''::character varying NOT NULL,
+    "stateRoot" character varying(255) DEFAULT ''::character varying NOT NULL,
+    "transactionsRoot" character varying(255) DEFAULT ''::character varying NOT NULL,
+    "uncleHash" character varying(255) DEFAULT ''::character varying NOT NULL,
+    "gasUsed" bigint DEFAULT 0 NOT NULL,
+    "mixHash" character varying(255) DEFAULT ''::character varying NOT NULL,
+    nonce character varying(255) DEFAULT ''::character varying NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: contracts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE contracts (
+    address character varying(255) DEFAULT ''::character varying NOT NULL,
+    transaction character varying(255) DEFAULT NULL::character varying,
+    created timestamp with time zone NOT NULL,
+    modified timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: currencies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE currencies (
+    id integer NOT NULL,
+    name character varying(255) DEFAULT ''::character varying NOT NULL,
+    created timestamp with time zone NOT NULL,
+    modified timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: currencies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE currencies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: currencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE currencies_id_seq OWNED BY currencies.id;
+
+
+--
+-- Name: infos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE infos (
+    id bigint NOT NULL,
+    "schemaVersion" character varying(255) DEFAULT ''::character varying NOT NULL,
+    created timestamp with time zone NOT NULL,
+    modified timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: infos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE infos_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: infos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE infos_id_seq OWNED BY infos.id;
+
+
+--
+-- Name: internal_transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE internal_transactions (
+    id bigint NOT NULL,
+    transaction character varying(255) DEFAULT ''::character varying NOT NULL,
+    "to" character varying(255) DEFAULT NULL::character varying,
+    "from" character varying(255) DEFAULT NULL::character varying,
+    amount numeric DEFAULT 0 NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: internal_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE internal_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: internal_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE internal_transactions_id_seq OWNED BY internal_transactions.id;
+
+
+--
+-- Name: last_blocks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE last_blocks (
+    currency integer NOT NULL,
+    "blockIndex" bigint,
+    created timestamp with time zone NOT NULL,
+    modified timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: last_blocks_currency_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE last_blocks_currency_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: last_blocks_currency_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE last_blocks_currency_seq OWNED BY last_blocks.currency;
+
+
+--
+-- Name: receipts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE receipts (
+    hash character varying(255) DEFAULT ''::character varying NOT NULL,
+    "cumulativeGasUsed" bigint DEFAULT 0 NOT NULL,
+    "postRoot" character varying(255) DEFAULT NULL::character varying,
+    status smallint,
+    "gasUsed" bigint DEFAULT 0 NOT NULL,
+    "logsBloom" text NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: token_transfers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE token_transfers (
+    id bigint NOT NULL,
+    status smallint DEFAULT 0 NOT NULL,
+    transaction character varying(255) DEFAULT ''::character varying NOT NULL,
+    currency character varying(255) DEFAULT ''::character varying NOT NULL,
+    "to" character varying(255) DEFAULT NULL::character varying,
+    "from" character varying(255) DEFAULT ''::character varying NOT NULL,
+    amount numeric DEFAULT 0 NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: token_transfers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE token_transfers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: token_transfers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE token_transfers_id_seq OWNED BY token_transfers.id;
+
+
+--
+-- Name: tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE tokens (
+    id character varying(255) DEFAULT ''::character varying NOT NULL,
+    name character varying(255) DEFAULT ''::character varying NOT NULL,
+    "totalSupply" numeric DEFAULT 0 NOT NULL,
+    decimals smallint DEFAULT 0 NOT NULL,
+    version character varying(255) DEFAULT ''::character varying NOT NULL,
+    symbol character varying(255) DEFAULT ''::character varying NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: transaction_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE transaction_logs (
+    transaction character varying(255) DEFAULT ''::character varying NOT NULL,
+    data text NOT NULL,
+    index integer DEFAULT 0 NOT NULL,
+    removed boolean DEFAULT false NOT NULL,
+    topics json NOT NULL,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE transactions (
+    hash character varying(255) DEFAULT NULL::character varying NOT NULL,
+    "to" character varying(255) DEFAULT NULL::character varying,
+    "from" character varying(255) DEFAULT NULL::character varying,
+    amount numeric DEFAULT 0 NOT NULL,
+    "gasLimit" bigint DEFAULT 0 NOT NULL,
+    "gasPrice" numeric DEFAULT 0 NOT NULL,
+    "gasUsed" bigint DEFAULT 0 NOT NULL,
+    nonce bigint DEFAULT 0 NOT NULL,
+    "timeReceived" timestamp with time zone NOT NULL,
+    "blockIndex" bigint DEFAULT 0 NOT NULL,
+    "transactionIndex" integer DEFAULT 0 NOT NULL,
+    v character varying(255) DEFAULT ''::character varying NOT NULL,
+    r character varying(255) DEFAULT ''::character varying NOT NULL,
+    s character varying(255) DEFAULT ''::character varying NOT NULL,
+    "inputData" text NOT NULL,
+    status smallint,
+    "cumulativeGasUsed" bigint DEFAULT 0 NOT NULL,
+    "postRoot" character varying(255) DEFAULT NULL::character varying,
+    created timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: workers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE workers (
+    name character varying(255) DEFAULT ''::character varying NOT NULL,
+    "blockIndex" bigint,
+    enabled boolean DEFAULT false NOT NULL,
+    "interval" bigint DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: currencies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY currencies ALTER COLUMN id SET DEFAULT nextval('currencies_id_seq'::regclass);
+
+
+--
+-- Name: infos id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY infos ALTER COLUMN id SET DEFAULT nextval('infos_id_seq'::regclass);
+
+
+--
+-- Name: internal_transactions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY internal_transactions ALTER COLUMN id SET DEFAULT nextval('internal_transactions_id_seq'::regclass);
+
+
+--
+-- Name: last_blocks currency; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY last_blocks ALTER COLUMN currency SET DEFAULT nextval('last_blocks_currency_seq'::regclass);
+
+
+--
+-- Name: token_transfers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY token_transfers ALTER COLUMN id SET DEFAULT nextval('token_transfers_id_seq'::regclass);
+
+
+--
+-- Data for Name: addresses; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY addresses (hash, balance, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: blocks; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY blocks (index, hash, "timeMined", bloom, coinbase, difficulty, "extraData", "gasLimit", "parentHash", "receiptsRoot", "stateRoot", "transactionsRoot", "uncleHash", "gasUsed", "mixHash", nonce, created) FROM stdin;
+0	0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3	1969-12-31 17:00:00-07	0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000	0x0000000000000000000000000000000000000000	17179869184	0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa	5000	0x0000000000000000000000000000000000000000000000000000000000000000	0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421	0xd7f8974fb5ac78d9ac099b9ad5018bedc2ce0a72dad1827a1709da30580f0544	0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421	0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347	0	0x0000000000000000000000000000000000000000000000000000000000000000	0x0000000000000042	2018-09-13 14:37:33.350304-06
+2	0xb495a1d7e6663152ae92708da4843337b958146015a2802f4193a410044698c9	2015-07-30 09:26:57-06	0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000	0xdd2f1e6e498202e86d8f5442af596580a4f03c2c	17163096064	0x476574682f76312e302e302d30636463373634372f6c696e75782f676f312e34	5000	0x88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6	0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421	0x4943d941637411107494da9ec8bc04359d731bfd08b72b4d0edcbd4cd2ecb341	0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421	0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347	0	0x2f0790c5aa31ab94195e1f6443d645af5b75c46c04fbf9911711198a0ce8fdda	0xb853fa261a86aa9e	2018-09-13 14:37:33.350304-06
+1	0x88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6	2015-07-30 09:26:28-06	0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000	0x05a56e2d52c817161883f50c441c3228cfe54d9f	17171480576	0x476574682f76312e302e302f6c696e75782f676f312e342e32	5000	0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3	0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421	0xd67e4d450343046425ae4271474353857ab860dbc0a1dde64b41b5cd3a532bf3	0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421	0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347	0	0x969b900de27b6ac6a67742365dd65f55a0526c41fd18e1b16f1a1215c2e66f59	0x539bd4979fef1ec4	2018-09-13 14:37:33.350304-06
+\.
+
+
+--
+-- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY contracts (address, transaction, created, modified) FROM stdin;
+\.
+
+
+--
+-- Data for Name: currencies; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY currencies (id, name, created, modified) FROM stdin;
+1	Bitcoin	2018-09-12 14:16:08.636499-06	2018-09-12 14:16:08.636499-06
+2	Ethereum	2018-09-12 14:16:08.636499-06	2018-09-12 14:16:08.636499-06
+\.
+
+
+--
+-- Data for Name: infos; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY infos (id, "schemaVersion", created, modified) FROM stdin;
+\.
+
+
+--
+-- Data for Name: internal_transactions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY internal_transactions (id, transaction, "to", "from", amount, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: last_blocks; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY last_blocks (currency, "blockIndex", created, modified) FROM stdin;
+\.
+
+
+--
+-- Data for Name: receipts; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY receipts (hash, "cumulativeGasUsed", "postRoot", status, "gasUsed", "logsBloom", created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: token_transfers; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY token_transfers (id, status, transaction, currency, "to", "from", amount, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tokens; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY tokens (id, name, "totalSupply", decimals, version, symbol, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: transaction_logs; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY transaction_logs (transaction, data, index, removed, topics, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY transactions (hash, "to", "from", amount, "gasLimit", "gasPrice", "gasUsed", nonce, "timeReceived", "blockIndex", "transactionIndex", v, r, s, "inputData", status, "cumulativeGasUsed", "postRoot", created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: workers; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY workers (name, "blockIndex", enabled, "interval") FROM stdin;
+receipt-scan	0	t	60000
+token-scan	0	t	60000
+eth-scan	4137000	t	60000
+\.
+
+
+--
+-- Name: currencies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('currencies_id_seq', 2, true);
+
+
+--
+-- Name: infos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('infos_id_seq', 1, false);
+
+
+--
+-- Name: internal_transactions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('internal_transactions_id_seq', 1, false);
+
+
+--
+-- Name: last_blocks_currency_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('last_blocks_currency_seq', 1, false);
+
+
+--
+-- Name: token_transfers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('token_transfers_id_seq', 1992, true);
+
+
+--
+-- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY addresses
+    ADD CONSTRAINT addresses_pkey PRIMARY KEY (hash);
+
+
+--
+-- Name: blocks blocks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY blocks
+    ADD CONSTRAINT blocks_pkey PRIMARY KEY (index);
+
+
+--
+-- Name: contracts contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY contracts
+    ADD CONSTRAINT contracts_pkey PRIMARY KEY (address);
+
+
+--
+-- Name: currencies currencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY currencies
+    ADD CONSTRAINT currencies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: infos infos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY infos
+    ADD CONSTRAINT infos_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: internal_transactions internal_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY internal_transactions
+    ADD CONSTRAINT internal_transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: last_blocks last_blocks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY last_blocks
+    ADD CONSTRAINT last_blocks_pkey PRIMARY KEY (currency);
+
+
+--
+-- Name: receipts receipts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY receipts
+    ADD CONSTRAINT receipts_pkey PRIMARY KEY (hash);
+
+
+--
+-- Name: token_transfers token_transfers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY token_transfers
+    ADD CONSTRAINT token_transfers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tokens tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY tokens
+    ADD CONSTRAINT tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transaction_logs transaction_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY transaction_logs
+    ADD CONSTRAINT transaction_logs_pkey PRIMARY KEY (transaction);
+
+
+--
+-- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY transactions
+    ADD CONSTRAINT transactions_pkey PRIMARY KEY (hash);
+
+
+--
+-- Name: workers workers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY workers
+    ADD CONSTRAINT workers_pkey PRIMARY KEY (name);
+
+
+--
+-- Name: blocks_time_mined; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX blocks_time_mined ON blocks USING btree ("timeMined");
+
+
+--
+-- Name: contracts_address; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX contracts_address ON contracts USING btree (address);
+
+
+--
+-- Name: contracts_transaction; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX contracts_transaction ON contracts USING btree (transaction);
+
+
+--
+-- Name: internal_transactions_from; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX internal_transactions_from ON internal_transactions USING btree ("from");
+
+
+--
+-- Name: internal_transactions_to; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX internal_transactions_to ON internal_transactions USING btree ("to");
+
+
+--
+-- Name: token_transfers_from; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX token_transfers_from ON token_transfers USING btree ("from");
+
+
+--
+-- Name: token_transfers_to; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX token_transfers_to ON token_transfers USING btree ("to");
+
+
+--
+-- Name: transactions_from; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_from ON transactions USING btree ("from");
+
+
+--
+-- Name: transactions_time_received; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_time_received ON transactions USING btree ("timeReceived");
+
+
+--
+-- Name: transactions_to; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_to ON transactions USING btree ("to");
+
+
+--
+-- PostgreSQL database dump complete
+--
+

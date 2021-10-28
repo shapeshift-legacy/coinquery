@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "workspaces": [
+    "modules/api",
+    "modules/common",
+    "modules/bitcoin",
+    "modules/ethereum"
+  ],
+  "scripts": {
+    "tsc": "echo '\ncompiling typescript\n' && tsc",
+    "lint": "tslint -p tsconfig.json",
+    "lintfix": "tslint -p tsconfig.json --fix"
+  },
+  "dependencies": {
+    "typescript": "2.9.2"
+  },
+  "devDependencies": {
+    "prettier": "^1.13.7",
+    "tslint": "^5.11.0",
+    "tslint-config-airbnb": "^5.9.2",
+    "tslint-plugin-prettier": "^1.3.0"
+  }
+}

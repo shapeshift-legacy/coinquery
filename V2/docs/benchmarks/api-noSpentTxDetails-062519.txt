@@ -1,0 +1,26 @@
+go test -timeout=0 -run=NONE -bench=. -benchtime=1x -tags=benchmark ./pkg/api/insight/
+time="2019-06-25T16:14:08-06:00" level=info msg="connected to db: postgres://indexer:<redacted>@indexer.<redacted>.us-west-2.rds.amazonaws.com:5432/indexer?sslmode=disable" coin= package=postgres service=
+goos: linux
+goarch: amd64
+pkg: github.com/shapeshift-legacy/coinquery/V2/pkg/api/insight
+BenchmarkStatus-8             	       1	 284541822 ns/op
+BenchmarkBlockByBlockHash/1k_Txs_Block-8         	       1	 641892983 ns/op
+BenchmarkBlockByBlockHash/2k_Txs_Block-8         	       1	 676116378 ns/op
+BenchmarkBlockByBlockHash/3k_Txs_Block-8         	       1	 642875899 ns/op
+BenchmarkBlockByBlockHash/4k_Txs_Block-8         	       1	 518268850 ns/op
+BenchmarkBlockByBlockHash/5k_Txs_Block-8         	       1	 716043906 ns/op
+BenchmarkTxByTxID/1/1_input/output-8             	       1	1548010995 ns/op
+BenchmarkTxByTxID/100/1_input/output-8           	       1	36312897933 ns/op
+BenchmarkTxByTxID/1/100_input/output-8           	       1	1654966821 ns/op
+BenchmarkTxByTxID/100/100_input/output-8         	       1	39462397759 ns/op
+BenchmarkTxsByBlockHash/1k_Txs_Block-8           	       1	399610612480 ns/op
+BenchmarkTxsByBlockHash/2k_Txs_Block-8           	       1	172848466158 ns/op
+BenchmarkTxsByBlockHash/3k_Txs_Block-8           	       1	161203923731 ns/op
+BenchmarkTxsByBlockHash/4k_Txs_Block-8           	       1	155051246086 ns/op
+BenchmarkTxsByBlockHash/5k_Txs_Block-8           	       1	168998271857 ns/op
+BenchmarkTxHistoryByAddrs/Small_Address-8        	       1	44547398321 ns/op
+BenchmarkTxHistoryByAddrs/Large_Address-8         	       1	477806473285 ns/op
+BenchmarkUtxosByAddrs/Small_Address-8             	       1	 740100593 ns/op
+BenchmarkUtxosByAddrs/Large_Address-8             	       1	 989235426 ns/op
+PASS
+ok  	github.com/shapeshift-legacy/coinquery/V2/pkg/api/insight	984.843s

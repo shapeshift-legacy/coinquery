@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": 999,
+        "message": "Test error"
+    }
+}

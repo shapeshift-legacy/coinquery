@@ -1,0 +1,41 @@
+go test -timeout=0 -run=NONE -bench=. -benchtime=1x -tags=benchmark ./pkg/postgres
+time="2019-06-25T18:08:50-06:00" level=info msg="connected to db: postgres://indexer:<redacted>@indexer.<redacted>.us-west-2.rds.amazonaws.com:5432/indexer?sslmode=disable" coin= package=postgres service=
+goos: linux
+goarch: amd64
+pkg: github.com/shapeshift-legacy/coinquery/V2/pkg/postgres
+BenchmarkLastBlock-8                	       1	 285622899 ns/op
+BenchmarkGetBlock/1k_Txs_Block-8    	       1	 506884987 ns/op
+BenchmarkGetBlock/2k_Txs_Block-8    	       1	 376498709 ns/op
+BenchmarkGetBlock/3k_Txs_Block-8    	       1	 406754590 ns/op
+BenchmarkGetBlock/4k_Txs_Block-8    	       1	 450254840 ns/op
+BenchmarkGetBlock/5k_Txs_Block-8    	       1	 353971560 ns/op
+BenchmarkGetTxHashesByBlockHash/1k_Txs_Block-8         	       1	 357812967 ns/op
+BenchmarkGetTxHashesByBlockHash/2k_Txs_Block-8         	       1	3301760047 ns/op
+BenchmarkGetTxHashesByBlockHash/3k_Txs_Block-8         	       1	1059829686 ns/op
+BenchmarkGetTxHashesByBlockHash/4k_Txs_Block-8         	       1	1654895898 ns/op
+BenchmarkGetTxHashesByBlockHash/5k_Txs_Block-8         	       1	 958868880 ns/op
+BenchmarkGetTotalTxsByBlockHash/1k_Txs_Block-8         	       1	 422483357 ns/op
+BenchmarkGetTotalTxsByBlockHash/2k_Txs_Block-8         	       1	 487681331 ns/op
+BenchmarkGetTotalTxsByBlockHash/3k_Txs_Block-8         	       1	 352440524 ns/op
+BenchmarkGetTotalTxsByBlockHash/4k_Txs_Block-8         	       1	 340443221 ns/op
+BenchmarkGetTotalTxsByBlockHash/5k_Txs_Block-8         	       1	 197752302 ns/op
+BenchmarkGetSpentTxDetails/#00-8                       	       1	 373768287 ns/op
+BenchmarkGetSpentTxDetails/#01-8                       	       1	 451322056 ns/op
+BenchmarkGetSpentTxDetails/#02-8                       	       1	 341455385 ns/op
+BenchmarkGetSpentTxDetails/#03-8                       	       1	 413940167 ns/op
+BenchmarkGetUtxosByAddrs/Small_Address-8               	       1	 476565072 ns/op
+BenchmarkGetUtxosByAddrs/Large_Address-8               	       1	 288678569 ns/op
+BenchmarkGetOutputsByTxID/1_output-8                   	       1	 376743470 ns/op
+BenchmarkGetOutputsByTxID/100_outputs-8                	       1	 641665434 ns/op
+BenchmarkGetTxIDsByAddresses/Small_Address-8           	       1	 492604737 ns/op
+BenchmarkGetTxIDsByAddresses/Large_Address-8           	       1	 978227610 ns/op
+BenchmarkGetTotalTxsByAddresses/Small_Address-8        	       1	 384826058 ns/op
+BenchmarkGetTotalTxsByAddresses/Large_Address-8        	       1	 557983389 ns/op
+BenchmarkGetTxByTxID/1/1_input/output-8                	       1	1149467592 ns/op
+BenchmarkGetTxByTxID/100/1_input/output-8              	       1	1486187120 ns/op
+BenchmarkGetTxByTxID/1/100_input/output-8              	       1	1239129382 ns/op
+BenchmarkGetTxByTxID/100/100_input/output-8            	       1	1393809656 ns/op
+BenchmarkGetInputsByTxID/1_input-8                     	       1	 363108387 ns/op
+BenchmarkGetInputsByTxID/100_inputs-8                  	       1	 499016041 ns/op
+PASS
+ok  	github.com/shapeshift-legacy/coinquery/V2/pkg/postgres	50.339s

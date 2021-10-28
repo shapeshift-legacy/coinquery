@@ -1,0 +1,17 @@
+{
+  "network": "livenet",
+  "port": 3001,
+  "services": ["dashd", "@dashevo/insight-api", "web"],
+  "servicesConfig": {
+    "@dashevo/insight-api": {
+      "routePrefix": "api",
+      "disableRateLimiter": true
+    },
+    "dashd": {
+      "spawn": {
+        "datadir": "/home/cqdev/.blockchain",
+        "exec": "/home/cqdev/dashcore-0.14.0/bin/dashd"
+      }
+    }
+  }
+}

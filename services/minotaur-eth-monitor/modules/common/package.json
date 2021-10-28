@@ -1,0 +1,28 @@
+{
+  "name": "common",
+  "version": "1.0.0",
+  "description": "Blockchain monitor",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bignumber.js": "^4.0.0",
+    "source-map-support": "^0.5.6",
+    "typescript": "^2.9.2",
+    "vineyard-data": "github:vineyard-bloom/vineyard-data#1.0.0-beta",
+    "vineyard-ground": "github:vineyard-bloom/vineyard-ground#1.x",
+    "winston": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.4",
+    "@types/node-dogstatsd": "0.0.2",
+    "@types/mocha": "^2.2.40",
+    "@types/node": "^7.0.5",
+    "chai": "^4.1.2",
+    "mocha": "^4.1.0"
+  }
+}

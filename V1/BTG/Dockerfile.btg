@@ -1,0 +1,117 @@
+FROM ubuntu:xenial
+MAINTAINER KeepKey <tech@keepkey.com>
+
+# USER root (default)
+
+# create cqdev user
+RUN useradd --create-home --shell /bin/bash cqdev
+
+# persistent storage of blockchain data in a docker volume on the host
+ENV BITCOIN_GOLD_DATA=/home/cqdev/.blockchain
+RUN mkdir -p ${BITCOIN_GOLD_DATA}
+RUN chmod 700 /home/cqdev
+RUN chown -R cqdev:cqdev /home/cqdev
+VOLUME [${BITCOIN_GOLD_DATA}]
+
+############# Install Bitcoin Node Dependencies ########
+
+RUN apt-get update -y \
+  && apt-get install -y curl libzmq3-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && set -ex \
+  && for key in \
+    B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+  ; do \
+    gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
+    gpg --keyserver keyserver.pgp.com --recv-keys "$key" || \
+    gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
+    gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" ; \
+  done
+
+RUN apt-get update
+RUN apt-get install build-essential libtool autotools-dev automake pkg-config \
+    libssl-dev libevent-dev bsdmainutils libsodium-dev --assume-yes
+
+RUN apt-get install libboost-all-dev -y
+RUN apt-get install git -y
+
+RUN apt-get install software-properties-common -y
+RUN add-apt-repository ppa:bitcoin/bitcoin
+RUN apt-get update
+RUN apt-get install -y libdb4.8-dev libdb4.8++-dev
+
+RUN apt-get install -y libboost-system-dev libboost-filesystem-dev \
+  libboost-chrono-dev libboost-program-options-dev \
+  libboost-test-dev libboost-thread-dev libboost1.58-all-dev \
+  libevent-dev libsodium-dev bsdmainutils libboost-all-dev libzmq3-dev
+
+############# Install Bitcoin Gold Node ###############
+
+WORKDIR /opt
+
+RUN mkdir bitcoin-gold
+COPY bitcoin-gold bitcoin-gold
+
+# compile bitcoind binaries
+
+WORKDIR /opt/bitcoin-gold
+RUN ./autogen.sh
+RUN ./configure --disable-wallet --without-gui
+RUN make
+RUN make install
+RUN make check
+
+## add to PATH
+RUN export PATH=$PATH:/opt/bitcoin-gold/bin
+
+RUN apt-get install -y git
+
+############# Install Node.js ####################
+
+WORKDIR /home/cqdev
+RUN curl -SL https://deb.nodesource.com/setup_8.x | bash
+RUN apt-get install -y nodejs
+
+# remove build deps
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+############# Install Insight #########################
+
+WORKDIR /home/cqdev
+USER cqdev
+ENV NPM_CONFIG_PREFIX=/home/cqdev/.npm-global
+ENV PATH=$PATH:/home/cqdev/.npm-global/bin
+RUN npm install -g git+https://git@github.com/digital-assets-data/bitcore-node-btg.git
+
+WORKDIR /home/cqdev/
+RUN bitcore-node create -d ${BITCOIN_GOLD_DATA} /home/cqdev/mynode
+
+WORKDIR /home/cqdev/mynode
+RUN bitcore-node install https://github.com/digital-assets-data/insight-api-btg
+COPY bitcore-node.json /home/cqdev/mynode/
+
+# mvpratt 5.29.2018 - remove checks on address type
+# Bitcoin Gold address all have `G` as the first letter (version prefix)
+# For some reason this library (or the way we are using it) is not expecting this prefix
+# After making these comments, the following endpoint now works:
+# https://localhost:3001/api/tx/0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098
+COPY address.js /home/cqdev/mynode/node_modules/insight-api/node_modules/bitcore-lib/lib/
+COPY address.js /home/cqdev/.npm-global/lib/node_modules/bitcore-node/node_modules/bitcore-lib/lib/address.js
+COPY address.js /home/cqdev/mynode/node_modules/bitcore-lib/lib/address.js
+
+COPY bitcoin.conf /home/cqdev/mynode/
+
+### Insight API
+EXPOSE 3001
+# RPC
+EXPOSE 8332
+# Bitcoin Gold p2p
+EXPOSE 8338
+
+ARG COMMIT
+ENV COMMIT ${COMMIT:-undefined}
+
+# always run on container start
+COPY start.sh /home/cqdev/mynode
+CMD ["/home/cqdev/mynode/start.sh"]

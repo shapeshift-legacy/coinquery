@@ -1,0 +1,26 @@
+@startuml
+autonumber
+title Coinquery Get Transaction History
+
+entity Watchtower
+entity CoinQuery
+database CoinQueryDB
+
+note over CoinQuery: REST API
+note over CoinQueryDB: Postgres
+
+loop from 1 to 50, 51 to 100 ...
+    Watchtower -> CoinQuery: GET /addrs/{ADDRS[]}/txs?from={FROM}&to={TO}
+    activate CoinQuery
+    loop array of addrs
+        CoinQuery -> CoinQueryDB: query txs by addr
+        activate CoinQueryDB
+        CoinQueryDB -> CoinQuery: list of txs
+        deactivate CoinQueryDB
+    end
+    CoinQuery -> CoinQuery: concatenate txs
+    CoinQuery --> Watchtower: response: {list of txs for all addrs}
+    deactivate CoinQuery
+end
+
+@enduml

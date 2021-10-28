@@ -1,0 +1,21 @@
+{
+  "network": "livenet",
+  "port": 3001,
+  "services": [
+    "bitcoind",
+    "insight-api",
+    "web"
+  ],
+  "servicesConfig": {
+    "insight-api": {
+      "routePrefix": "api",
+      "disableRateLimiter": true
+    },
+    "bitcoind": {
+      "spawn": {
+        "datadir": "/home/cqdev/.blockchain",
+        "exec": "/usr/local/bin/bgoldd"
+      }
+    }
+  }
+}

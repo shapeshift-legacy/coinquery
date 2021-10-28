@@ -1,0 +1,6 @@
+GET http://localhost:4000/api/insight/btc/status?q=getLastBlockHash
+GET http://localhost:4000/api/insight/btc/block/00000000000000000018010d8575345e5884f3cd3accefe3d27e06e87d38688b
+GET http://localhost:4000/api/insight/btc/tx/8c14f0db3df150123e6f3dbbf30f8b955a8249b62ac1d1ff16284aefa3d06d87
+GET http://localhost:4000/api/insight/btc/addrs/1JTnDciEYdbTQfjY7nse6NSbRSwxdruQk6/txs?from=0&to=1
+GET http://localhost:4000/api/insight/btc/addrs/12cgpFdJViXbwHbhrA3TuW1EGnL25Zqc3P/utxo
+GET http://localhost:4000/api/insight/btc/txs?block=000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506

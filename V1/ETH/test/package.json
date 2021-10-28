@@ -1,0 +1,31 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "Test token balance requests to the proxy service",
+  "main": "test.js",
+  "scripts": {
+    "lint": "eslint .",
+    "tests": "./node_modules/mocha/bin/mocha --timeout 10000 -c tests/*.js",
+    "tests-that-spend": "./node_modules/mocha/bin/mocha --timeout 10000 -c tests-that-spend/*.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": "8.4.0"
+  },
+  "dependencies": {
+    "dirty-json": "^0.5.2",
+    "ethereum-tx-decoder": "^1.0.2",
+    "mocha": "^5.0.4",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
+    "request-rate-limiter": "^1.0.2"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.2",
+    "chai": "^4.1.2",
+    "eslint": "^4.18.0",
+    "eslint-config-google": "^0.9.1",
+    "lodash": "^4.17.5"
+  }
+}

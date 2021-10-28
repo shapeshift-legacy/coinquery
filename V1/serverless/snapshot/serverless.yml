@@ -1,0 +1,69 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# AWS SDK Documentation
+#    docs.aws.amazon.com/AWSJavaScriptSDK/latest/index.html
+
+service: snapshot
+provider:
+  name: aws
+  timeout: 240
+  runtime: nodejs8.10
+  region: us-west-2
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ecs:ListTasks"
+        - "ecs:ListContainerInstances"
+        - "ecs:DescribeContainerInstances"
+        - "ecs:DescribeTasks"
+        - "ec2:GetConsoleScreenshot"
+        - "ecs:DescribeClusters"
+        - "ec2:DescribeInstances"
+        - "ec2:CreateSnapshot"
+        - "ec2:StartInstances"
+        - "ec2:StopInstances"
+        - "ec2:*"
+        - "ecs:*"
+        - "ebs:*"
+        - "s3:*"
+        - "ec2:CreateSnapshot"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "ec2:DescribeInstances"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "ssm:GetParameter"
+      Resource: "*"
+package:
+  include:
+    - ../constants.js
+functions:
+  snapshot:
+    handler: handler.snapshot
+    description: Take snapshots of snapshot instances in all regions
+    events:
+      - schedule: rate(4 hours)
+      - http:
+          path: regions/{regions}
+          method: get
+          cors: true
+          request:
+            parameters:
+               paths:
+                 wallet: true
+  getLatestSnapshot:
+    handler: handler.getLatestSnapshot
+    description: gets the latest snapshot for a specific region
+    events:
+      - http: GET getLatestSnapshot

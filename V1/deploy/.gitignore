@@ -1,0 +1,5 @@
+env.sh
+.DS_Store
+*.swp
+minotaur/config.ts
+minotaur/env.sh

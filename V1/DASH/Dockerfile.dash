@@ -1,0 +1,37 @@
+FROM node:6
+LABEL maintainer="tech@keepkey.com"
+
+# create cqdev user
+RUN useradd --create-home --shell /bin/bash cqdev
+
+# persistent storage of blockchain data in a docker volume on the host
+ENV DASH_DATA=/home/cqdev/.blockchain
+ENV VERSION=0.14.0.0
+RUN mkdir -p ${DASH_DATA}
+RUN chmod 700 /home/cqdev
+RUN chown -R cqdev:cqdev /home/cqdev
+
+WORKDIR /home/cqdev
+RUN wget https://github.com/dashpay/dash/releases/download/v${VERSION}/dashcore-${VERSION}-x86_64-linux-gnu.tar.gz
+RUN tar xvzf dashcore-${VERSION}-x86_64-linux-gnu.tar.gz && rm *.tar.gz
+RUN apt-get update && apt-get install -y libzmq3-dev
+
+USER cqdev
+RUN npm i @dashevo/dashcore-node
+RUN /home/cqdev/node_modules/\@dashevo/dashcore-node/bin/dashcore-node create -d /home/cqdev/.blockchain mynode
+
+WORKDIR /home/cqdev/mynode
+# Install our fork of Insight API which changes the pageSize on the /txs/?block={addr}&pageNum={page} endpoint to 100
+# branch: coinquery-prod
+RUN npm install git+https://git@github.com/blockrange/dashevo-insight-api.git#4bc3ce5eb1e50832110dabd5ca1b7656c3bcc557
+
+COPY start.sh /home/cqdev/mynode/
+COPY dashcore-node.json /home/cqdev/mynode/
+COPY dash.conf /home/cqdev/mynode/
+
+EXPOSE 3001 8332
+
+ARG COMMIT
+ENV COMMIT ${COMMIT:-undefined}
+
+CMD ["/home/cqdev/mynode/start.sh"]

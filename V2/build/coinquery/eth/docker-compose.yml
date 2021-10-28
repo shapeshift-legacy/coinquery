@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  api:
+    container_name: "cq-api-eth"
+    build:
+      context: .
+      args:
+        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ../../../../V2:/app
+      - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    restart: on-failure

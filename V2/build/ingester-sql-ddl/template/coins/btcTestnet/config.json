@@ -1,0 +1,7 @@
+{
+    "rootTemplate": "txo",
+    "parameters": {
+        "schema": "btctestnet"
+    }
+}
+

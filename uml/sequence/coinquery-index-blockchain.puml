@@ -1,0 +1,32 @@
+@startuml
+autonumber
+title Coinquery Index Blockchain
+
+entity CoinQuery
+database CoinQueryDB
+entity Cointainer
+
+note over CoinQuery: Blockchain Indexer
+note over CoinQueryDB: Postgres
+note over Cointainer: RPC
+
+loop blockNum
+    activate CoinQuery
+    CoinQuery -> Cointainer: request block
+    activate Cointainer
+    Cointainer -> CoinQuery: block
+    deactivate Cointainer
+    CoinQuery -> CoinQueryDB: block_insert
+    activate CoinQueryDB
+    CoinQueryDB -> CoinQuery: success
+    deactivate CoinQueryDB
+    loop txs in block
+        CoinQuery -> CoinQueryDB: transaction_insert
+        activate CoinQueryDB
+        CoinQueryDB -> CoinQuery: success
+        deactivate CoinQueryDB
+    end
+    deactivate CoinQuery
+end
+
+@enduml

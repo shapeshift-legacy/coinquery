@@ -1,0 +1,21 @@
+@startuml
+autonumber
+title Coinquery Get Transaction Details
+
+entity Watchtower
+entity CoinQuery
+database CoinQueryDB
+
+note over CoinQuery: REST API
+note over CoinQueryDB: Postgres
+
+Watchtower -> CoinQuery: GET /tx/{TXID}
+activate CoinQuery
+CoinQuery -> CoinQueryDB: query tx details
+activate CoinQueryDB
+CoinQueryDB -> CoinQuery: tx details
+deactivate CoinQueryDB
+CoinQuery --> Watchtower: response: {tx object}
+deactivate CoinQuery
+
+@enduml

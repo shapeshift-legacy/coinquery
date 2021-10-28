@@ -1,0 +1,37 @@
+{
+  "name": "snapshot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "jest --detectOpenHandles",
+    "deploy": "serverless deploy -v",
+    "deploy-function": "serverless deploy function -f snapshot",
+    "linter": "./node_modules/.bin/eslint",
+    "invoke": "serverless invoke -f snapshot -l",
+    "getLatestSnapshot": "serverless invoke -f getLatestSnapshot -l",
+    "log": "serverless logs -f snapshot -t"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "2.210.0",
+    "requestretry": "1.13.0",
+    "serverless": "1.30.3",
+    "signale": "1.2.1"
+  },
+  "devDependencies": {
+    "eslint": "5.4.0",
+    "eslint-config-airbnb-base": "13.1.0",
+    "eslint-plugin-import": "2.14.0",
+    "mocha": "5.2.0",
+    "lodash": "4.17.10",
+    "aws-sdk-mock": "4.0.0",
+    "jest": "23.1.0"
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/tests"
+    ]
+  }
+}

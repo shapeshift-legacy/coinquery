@@ -1,0 +1,24 @@
+{
+  "name": "sanitize-aws",
+  "version": "1.0.0",
+  "description": "LAMBDA for cleaning up aws resources",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "serverless deploy -v",
+    "clean": "serverless remove",
+    "invoke": "serverless invoke -f sanitizeAws -l",
+    "log": "serverless logs -f sanitizeAws -t",
+    "linter": "./node_modules/.bin/eslint"
+  },
+  "author": "CoinQuery",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.314.0"
+  },
+  "devDependencies": {
+    "eslint": "5.4.0",
+    "eslint-config-airbnb-base": "13.1.0",
+    "eslint-plugin-import": "2.14.0"
+  }
+}

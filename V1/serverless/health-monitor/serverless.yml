@@ -1,0 +1,60 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# AWS SDK Documentation
+#    docs.aws.amazon.com/AWSJavaScriptSDK/latest/index.html
+
+service: healthMonitor
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: ${env:AWS_REGION}
+  timeout: 180
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ecs:ListTasks"
+        - "ecs:ListContainerInstances"
+        - "ecs:DescribeContainerInstances"
+        - "ecs:DescribeTasks"
+        - "ec2:GetConsoleScreenshot"
+        - "ecs:DescribeClusters"
+      Resource: 
+        - "arn:aws:ecs:*:*:task/*"
+        - "arn:aws:ecs:*:*:container-instance/*"
+        - "arn:aws:ecs:*:*:cluster/*"
+        - "arn:aws:ec2:*:*:instance/*"
+    - Effect: "Allow"
+      Action:
+        - "ec2:DescribeInstances"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "ssm:GetParameter"
+      Resource: "*"
+functions:
+  coinInstances:
+    handler: handlers/coinInstances.checkHealth
+    description: Check health of all coin instances in ${env:AWS_MONITOR_REGION}
+    events:
+      - schedule: rate(1 minute)
+    environment:
+      OPS_GENIE_ENABLE: ${env:OPS_GENIE_ENABLE}
+      OPS_GENIE_API_KEY: ${env:OPS_GENIE_API_KEY}
+      AWS_MONITOR_REGION: ${env:AWS_MONITOR_REGION}
+  loadBalancer:
+    handler: handlers/loadBalancer.checkHealth
+    description: Check health of load balancer in ${env:AWS_MONITOR_REGION}
+    events:
+      - schedule: rate(3 minutes)
+    environment:
+      OPS_GENIE_ENABLE: ${env:OPS_GENIE_ENABLE}
+      OPS_GENIE_API_KEY: ${env:OPS_GENIE_API_KEY}

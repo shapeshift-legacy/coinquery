@@ -1,0 +1,69 @@
+FROM ubuntu:xenial
+MAINTAINER KeepKey <tech@keepkey.com>
+
+# create cqdev user
+RUN useradd --create-home --shell /bin/bash cqdev 
+
+# persistent storage of blockchain data in a docker volume on the host
+ENV ZEC_DATA=/home/cqdev/.blockchain
+RUN mkdir -p ${ZEC_DATA}
+RUN chmod 700 /home/cqdev
+RUN chown -R cqdev:cqdev /home/cqdev
+VOLUME [${ZEC_DATA}]
+
+############# Install ZEC ####################
+
+# install utilities and dependencies 
+RUN apt-get update
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN apt-get update
+RUN apt-get install procps vim libtool pkg-config build-essential autoconf automake \
+  bsdmainutils libboost-all-dev autotools-dev libssl-dev gcc-7 g++-7 libevent-dev curl \
+  libzmq3-dev --assume-yes
+RUN apt-get install -y unzip
+
+# Install vim so we can login and edit files if needed for debug
+RUN apt-get update -y && apt-get install apt-file -y && apt-get update -y && apt-get install -y vim git
+
+# install zcash daemon
+WORKDIR /opt
+RUN git clone -b v2.0.1-insight-explorer https://github.com/zcash-hackworks/zcash-patched-for-explorer.git zcash
+WORKDIR /opt/zcash
+RUN ./zcutil/fetch-params.sh
+RUN ./zcutil/build.sh
+
+############# Install Node.js ####################
+
+WORKDIR /home/cqdev
+RUN curl -SL https://deb.nodesource.com/setup_8.x | bash
+RUN apt-get install -y nodejs
+
+# remove build deps
+#RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+############# Install Insight ####################
+
+USER cqdev
+RUN /opt/zcash/zcutil/fetch-params.sh
+ENV NPM_CONFIG_PREFIX=/home/cqdev/.npm-global
+ENV PATH=$PATH:/home/cqdev/.npm-global/bin
+RUN npm install -g --unsafe-perm=true git+https://git@github.com/zcash-hackworks/bitcore-node-zcash
+
+WORKDIR /home/cqdev/
+RUN bitcore-node create -d ${ZEC_DATA} /home/cqdev/mynode
+
+WORKDIR /home/cqdev/mynode
+RUN bitcore-node install git+https://git@github.com/zcash-hackworks/insight-api-zcash 
+COPY bitcore-node.json /home/cqdev/mynode/
+COPY zcash.conf /home/cqdev/mynode
+
+# insight, rpc ports
+EXPOSE 3001 8332
+
+ARG COMMIT
+ENV COMMIT ${COMMIT:-undefined}
+
+# always run on container start
+COPY start.sh ./start.sh
+CMD ["./start.sh"]

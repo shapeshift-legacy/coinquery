@@ -1,0 +1,22 @@
+.idea
+.vscode
+.nyc_output
+node_modules
+npm-*
+modules/**/*.js
+modules/ethereum/temp
+*.d.ts
+*.js
+*.js.map
+test/config/config.*
+config-btc.*
+config-eth.*
+config.*
+yarn-*
+.node*
+package-*
+*.swp
+.DS_Store
+/temp
+# Only track root yarn.lock
+**/*/yarn.lock

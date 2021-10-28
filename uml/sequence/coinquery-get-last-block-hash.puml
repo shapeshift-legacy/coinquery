@@ -1,0 +1,21 @@
+@startuml
+autonumber
+title Coinquery Last Block Hash
+
+entity Watchtower
+entity CoinQuery
+database CoinQueryDB
+
+note over CoinQuery: REST API
+note over CoinQueryDB: Postgres
+
+Watchtower -> CoinQuery: GET /status?q=getLastBlockHash
+activate CoinQuery
+CoinQuery -> CoinQueryDB: query most recent block
+activate CoinQueryDB
+CoinQueryDB -> CoinQuery: blockhash
+deactivate CoinQueryDB
+CoinQuery --> Watchtower: response: {blockhash}
+deactivate CoinQuery
+
+@enduml

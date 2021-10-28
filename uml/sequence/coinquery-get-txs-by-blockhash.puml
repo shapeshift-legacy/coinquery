@@ -1,0 +1,23 @@
+@startuml
+autonumber
+title Coinquery Get Transactions By Blockhash
+
+entity Watchtower
+entity CoinQuery
+database CoinQueryDB
+
+note over CoinQuery: REST API
+note over CoinQueryDB: Postgres
+
+loop pageNum
+    Watchtower -> CoinQuery: GET /txs/?block={blockHash}&pageNum={pageNum}
+    activate CoinQuery
+    CoinQuery -> CoinQueryDB: query txs by blockhash
+    activate CoinQueryDB
+    CoinQueryDB -> CoinQuery: txs
+    deactivate CoinQueryDB
+    CoinQuery --> Watchtower: response: {total txs, paginated}
+    deactivate CoinQuery
+end
+
+@enduml

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "strict": true,
+    "sourceMap": true,
+    "declaration": false,
+    "newLine": "lf"
+  },
+  "include": [
+    "modules/*/config/**/*",
+    "modules/*/scripts/**/*",
+    "modules/*/src/**/*",
+    "modules/*/test/**/*"
+  ],
+  "exclude": [
+    "modules/bitcoin/**/*",
+  ]
+}

@@ -1,0 +1,24 @@
+FROM nixos/nix
+
+# add curl and git
+RUN apk update \
+    && apk add git \
+    && apk add curl \
+    && apk add curl-dev
+
+# add cardano specific config
+COPY nix-config .
+RUN mkdir -p /etc/nix
+RUN cat nix-config >> /etc/nix/nix.conf
+
+# pull odwn cardano from github and ensure master branch
+RUN git clone https://github.com/input-output-hk/cardano-sl.git
+WORKDIR cardano-sl
+
+# Until 1.3.1 checkout into develop branch
+RUN git checkout develop
+
+# build cardano sl node and script to connect to mainnet
+RUN nix-build --out-link docker-image.tar.gz -A dockerImages.mainnet.explorer
+
+COPY copy.sh .

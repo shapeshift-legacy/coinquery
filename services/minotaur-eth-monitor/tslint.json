@@ -1,0 +1,52 @@
+{
+  "linterOptions": {
+    "exclude": [
+      "modules/*/test/tests/**"
+    ]
+  },
+  "extends": [
+    "tslint-config-airbnb",
+    "tslint-plugin-prettier"
+  ],
+  "rules": {
+    "align": [true, "parameters", "statements", "members", "elements"],
+    "brace-style": false,
+    "curly": false,
+    "eofline": false,
+    "function-name": false,
+    "max-line-length": false,
+    "member-ordering": false,
+    "no-increment-decrement": false,
+    "no-else-after-return": false,
+    "no-multi-spaces": true,
+    "no-trailing-whitespace": false,
+    "no-unused-variable": false,
+    "object-shorthand-properties-first": false,
+    "one-line": true,
+    "one-variable-per-declaration": false,
+    "prettier": [
+      false,
+      {
+        "printWidth": 100,
+        "semi": false,
+        "singleQuote": true
+      }
+    ],
+    "prefer-const": true,
+    "prefer-array-literal": false,
+    "semicolon": false,
+    "space-before-function-paren": false,
+    "ter-arrow-parens": false,
+    "ter-indent": false,
+    "ter-prefer-arrow-callback": false,
+    "trailing-comma": false,
+    "triple-equals": false,
+    "quotemark": [
+      true,
+      "single",
+      "avoid-escape",
+      "avoid-template"
+    ],
+    "variable-name": false
+  }
+}

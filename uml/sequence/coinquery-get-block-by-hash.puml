@@ -1,0 +1,21 @@
+@startuml
+autonumber
+title Coinquery Get Block By Hash
+
+entity Watchtower
+entity CoinQuery
+database CoinQueryDB
+
+note over CoinQuery: REST API
+note over CoinQueryDB: Postgres
+
+Watchtower -> CoinQuery: GET /block/{BLOCK_HASH}
+activate CoinQuery
+CoinQuery -> CoinQueryDB: query block meta data
+activate CoinQueryDB
+CoinQueryDB -> CoinQuery: block meta data
+deactivate CoinQueryDB
+CoinQuery --> Watchtower: response: {block meta data}
+deactivate CoinQuery
+
+@enduml

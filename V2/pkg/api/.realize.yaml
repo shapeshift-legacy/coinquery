@@ -1,0 +1,22 @@
+settings:
+  legacy:
+    force: false
+    interval: 0s
+schema:
+- name: API
+  path: ../../cmd/api
+  commands:
+    run:
+      status: true
+  args:
+    - -config=../../config.json
+    - -coin=btc
+  watcher:
+    extensions:
+    - go
+    paths:
+    - ../../..
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor

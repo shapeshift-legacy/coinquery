@@ -1,0 +1,463 @@
+{
+  "Address": {
+    "primaryKeys": [
+      "hash"
+    ],
+    "properties": {
+      "hash": {
+        "type": "string"
+      },
+      "balance": {
+        "type": "bignumber"
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    }
+  },
+  "Block": {
+    "primaryKeys": [
+      "index"
+    ],
+    "properties": {
+      "index": {
+        "type": "int",
+        "autoIncrement": false
+      },
+      "hash": {
+        "type": "string"
+      },
+      "timeMined": {
+        "type": "datetime"
+      },
+      "bloom": {
+        "type": "text"
+      },
+      "coinbase": {
+        "type": "string"
+      },
+      "difficulty": {
+        "type": "long"
+      },
+      "extraData": {
+        "type": "string"
+      },
+      "gasLimit": {
+        "type": "long"
+      },
+      "parentHash": {
+        "type": "string"
+      },
+      "receiptsRoot": {
+        "type": "string"
+      },
+      "stateRoot": {
+        "type": "string"
+      },
+      "transactionsRoot": {
+        "type": "string"
+      },
+      "uncleHash": {
+        "type": "string"
+      },
+      "gasUsed": {
+        "type": "long"
+      },
+      "mixHash": {
+        "type": "string"
+      },
+      "nonce": {
+        "type": "string"
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": [
+            "timeMined"
+          ]
+        }
+      ]
+    }
+  },
+  "Contract": {
+    "primaryKeys": [
+      "address"
+    ],
+    "properties": {
+      "address": {
+        "type": "string",
+        "unique": true
+      },
+      "transaction": {
+        "type": "string",
+        "nullable": true
+      }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": [
+            "address"
+          ]
+        },
+        {
+          "properties": [
+            "transaction"
+          ]
+        }
+      ]
+    }
+  },
+  "Currency": {
+    "properties": {
+      "id": {
+        "type": "int"
+      },
+      "name": {
+        "type": "string"
+      }
+    }
+  },
+  "LastBlock": {
+    "primaryKeys": [
+      "currency"
+    ],
+    "properties": {
+      "currency": {
+        "type": "int"
+      },
+      "blockIndex": {
+        "type": "long",
+        "nullable": true
+      }
+    }
+  },
+  "Service": {
+    "primaryKeys": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "enabled": {
+        "type": "bool"
+      },
+      "state": {
+        "type": "jsonb",
+        "nullable": true
+      }
+    },
+    "additional": {
+      "autoFields": []
+    }
+  },
+  "TransactionLog": {
+    "primaryKeys": [
+      "transaction"
+    ],
+    "properties": {
+      "transaction": {
+        "type": "string"
+      },
+      "data": {
+        "type": "text"
+      },
+      "index": {
+        "type": "int"
+      },
+      "removed": {
+        "type": "bool"
+      },
+      "topics": {
+        "type": "jsonb"
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    }
+  },
+  "Token": {
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "totalSupply": {
+        "type": "bignumber"
+      },
+      "decimals": {
+        "type": "short"
+      },
+      "version": {
+        "type": "string"
+      },
+      "symbol": {
+        "type": "string"
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    }
+  },
+  "TokenTransfer": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "status": {
+        "type": "short"
+      },
+      "transaction": {
+        "type": "string"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "to": {
+        "type": "string",
+        "nullable": true
+      },
+      "from": {
+        "type": "string"
+      },
+      "amount": {
+        "type": "bignumber"
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": [
+            "to"
+          ]
+        },
+        {
+          "properties": [
+            "from"
+          ]
+        }
+      ]
+    }
+  },
+  "InternalTransaction": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "transaction": {
+        "type": "string"
+      },
+      "to": {
+        "type": "string",
+        "nullable": true
+      },
+      "from": {
+        "type": "string",
+        "nullable": true
+      },
+      "amount": {
+        "type": "bignumber"
+      }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": [
+            "to"
+          ]
+        },
+        {
+          "properties": [
+            "from"
+          ]
+        }
+      ]
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    }
+  },
+  "Info": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "schemaVersion": {
+        "type": "string"
+      }
+    }
+  },
+  "Transaction": {
+    "primaryKeys": [
+      "hash"
+    ],
+    "properties": {
+      "hash": {
+        "type": "string",
+        "nullable": true
+      },
+      "to": {
+        "type": "string",
+        "nullable": true
+      },
+      "from": {
+        "type": "string",
+        "nullable": true
+      },
+      "amount": {
+        "type": "bignumber"
+      },
+      "gasLimit": {
+        "type": "long"
+      },
+      "gasPrice": {
+        "type": "bignumber"
+      },
+      "gasUsed": {
+        "type": "long"
+      },
+      "nonce": {
+        "type": "long"
+      },
+      "timeReceived": {
+        "type": "datetime"
+      },
+      "blockIndex": {
+        "type": "long"
+      },
+      "transactionIndex": {
+        "type": "int"
+      },
+      "v": {
+        "type": "string"
+      },
+      "r": {
+        "type": "string"
+      },
+      "s": {
+        "type": "string"
+      },
+      "inputData": {
+        "type": "text"
+      },
+      "status": {
+        "type": "short",
+        "nullable": true
+      },
+      "cumulativeGasUsed": {
+        "type": "long"
+      },
+      "postRoot": {
+        "type": "string",
+        "nullable": true
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": [
+            "to",
+            "blockIndex"
+          ]
+        },
+        {
+          "properties": [
+            "from",
+            "blockIndex"
+          ]
+        },
+        {
+          "properties": [
+            "blockIndex"
+          ]
+        }
+      ]
+    }
+  },
+  "Receipt": {
+    "primaryKeys": [
+      "hash"
+    ],
+    "properties": {
+      "hash": {
+        "type": "string",
+        "unique": true
+      },
+      "cumulativeGasUsed": {
+        "type": "long"
+      },
+      "postRoot": {
+        "type": "string",
+        "nullable": true
+      },
+      "status": {
+        "type": "short",
+        "nullable": true
+      },
+      "gasUsed": {
+        "type": "long"
+      },
+      "logsBloom": {
+        "type": "text"
+      }
+    },
+    "additional": {
+      "autoFields": [
+        "created"
+      ]
+    }
+  },
+  "ValidationRecord": {
+    "primaryKeys": [
+      "blockIndex"
+    ],
+    "properties": {
+      "blockIndex": {
+        "type": "long",
+        "nullable": true
+      },
+      "valid": {
+        "type": "bool"
+      },
+      "data": {
+        "type": "jsonb"
+      }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": [
+            "valid"   
+          ]
+        }
+      ]
+    }
+  }
+}

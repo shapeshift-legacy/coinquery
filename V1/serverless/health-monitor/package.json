@@ -1,0 +1,26 @@
+{
+  "name": "health-monitor",
+  "version": "1.0.0",
+  "description": "Health monitoring tool",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "serverless deploy -v",
+    "clean": "serverless remove",
+    "invoke": "serverless invoke -f loadBalancer -l",
+    "invoke-local": "serverless invoke local -f loadBalancer -l",
+    "log": "serverless logs -f loadBalancer -t",
+    "linter": "./node_modules/.bin/eslint"
+  },
+  "author": "CQ",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.245.1",
+    "lodash": "^4.17.11",
+    "opsgenie-sdk": "^0.4.3",
+    "requestretry": "^1.13.0",
+    "serverless": "^1.31.0"
+  },
+  "devDependencies": {
+    "hmon": "file:scripts/hmon"
+  }
+}

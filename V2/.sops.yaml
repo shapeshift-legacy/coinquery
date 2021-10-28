@@ -1,0 +1,7 @@
+creation_rules:
+  - path_regex: local\.json$
+    kms: 'arn:aws:kms:us-west-2:486379091271:key/0103d0be-61e0-4b77-a3ef-7c188f0f2e13'
+  - path_regex: stage\.json$
+    kms: 'arn:aws:kms:eu-west-1:053006496257:alias/eks-skunkworks+arn:aws:iam::053006496257:role/terraform/Developer,arn:aws:kms:eu-west-1:053006496257:alias/eks-megacluster+arn:aws:iam::053006496257:role/eks-megacluster-secrets'
+  - path_regex: prod\.json$
+    kms: 'arn:aws:kms:eu-west-1:053006496257:alias/eks-skunkworks+arn:aws:iam::053006496257:role/terraform/Developer,arn:aws:kms:eu-west-1:499107126473:alias/eks-megacluster+arn:aws:iam::499107126473:role/eks-megacluster-secrets'

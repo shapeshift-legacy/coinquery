@@ -1,0 +1,57 @@
+{
+
+    "bits": "1a10dc61",
+    "chainwork": "00000000000000000000000000000000000000000003080f00370729b6d2ddcc",
+    "confirmations": 8947,
+    "difficulty": 995024.2676288447,
+    "hash": "fd1cda4ae441f252e76d5fd0be7ca4d89eb5459de516fb80602751ee4adf6894",
+    "height": 9309135,
+    "mediantime": 1566703670,
+    "merkleroot": "ca50c57cb9074076f7d7659496598ac58a563f2f3ac30cc5daaeb9911a6655d2",
+    "nTx": 1,
+    "nextblockhash": "000000000000000860691850b6d88ef0a3af024a90d684b579766c5247c4d714",
+    "nonce": 3433082294,
+    "pow_algo": "qubit",
+    "pow_algo_id": 4,
+    "pow_hash": "00000000000002e2903b558b20f900798cb0861a8f0d2156c3d82d745f713d24",
+    "previousblockhash": "34638d72ba5903aa7fb25ac6420c732eee82318639f6dc67bb79b450a1aec10c",
+    "size": 194,
+    "strippedsize": 194,
+    "time": 1566703701,
+    "tx": [
+        {
+            "hash": "ca50c57cb9074076f7d7659496598ac58a563f2f3ac30cc5daaeb9911a6655d2",
+            "hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1c04cf0b8e00045500625d08810004a9a50000007a706f6f6c2e636100000000000167a33e530f0000001976a914e3048e114a31e7ba01137659881cfe50fa3c2d7388ac00000000",
+            "locktime": 0,
+            "size": 113,
+            "txid": "ca50c57cb9074076f7d7659496598ac58a563f2f3ac30cc5daaeb9911a6655d2",
+            "version": 1,
+            "vin": [
+                {
+                    "coinbase": "04cf0b8e00045500625d08810004a9a50000007a706f6f6c2e636100",
+                    "sequence": 0
+                }
+            ],
+            "vout": [
+                {
+                    "n": 0,
+                    "scriptPubKey": {
+                        "addresses": [
+                            "DRqTPHdSV4ofaLHdq3wM2DCdRA9tBxnrHo"
+                            ],
+                            "asm": "OP_DUP OP_HASH160 e3048e114a31e7ba01137659881cfe50fa3c2d73 OP_EQUALVERIFY OP_CHECKSIG",
+                            "hex": "76a914e3048e114a31e7ba01137659881cfe50fa3c2d7388ac",
+                            "reqSigs": 1,
+                            "type": "pubkeyhash"
+                    },
+                    "value": 658.21123431
+                }
+            ],
+            "vsize": 113,
+            "weight": 452
+        }
+    ],
+    "version": 536872962,
+    "versionHex": "20000802",
+    "weight": 776
+}

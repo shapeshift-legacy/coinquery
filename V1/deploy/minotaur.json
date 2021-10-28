@@ -1,0 +1,332 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Minotaur (ETH) Geth Node",
+  "Parameters": {
+    "NetworkStack": {
+      "Type": "String",
+      "Default": "coinquery-network",
+      "Description": "The CloudFormation stack exporting our desired VPC and networking configuration."
+    },
+    "MinotaurImage": {
+      "Type": "String",
+      "Description": "Fully qualified ECR image tag for the minotaur image."
+    },
+    "IsProdConditon": {
+      "Type": "String",
+      "Description": "Flag for production scaling instances."
+    },
+    "MinotaurRPCServer": {
+      "Type": "String",
+      "Description": "Minotaur ETH transaction database -- connection to geth/parity node."
+    },    
+    "MinotaurHost": {
+      "Type": "String",
+      "Description": "Minotaur ETH transaction database."
+    },    
+    "MinotaurDatabase": {
+      "Type": "String",
+      "Description": "Minotaur ETH transaction database."
+    },    
+    "MinotaurUsername": {
+      "Type": "String",
+      "Description": "Minotaur ETH transaction database."
+    },
+    "MinotaurPassword": {
+      "Type": "String",
+      "Description": "Minotaur ETH transaction database."
+    }
+  },
+  "Conditions": {
+    "IsProd": {
+      "Fn::Equals": [
+        {
+          "Ref": "IsProdConditon"
+        },
+        "true"
+      ]
+    }
+  },
+  "Mappings": {
+    "AWSRegionToAMI": {
+      "us-east-2": {
+        "AMIID": "ami-956e52f0"
+      },
+      "us-east-1": {
+        "AMIID": "ami-5253c32d"
+      },
+      "us-west-2": {
+        "AMIID": "ami-d2f489aa"
+      },
+      "us-west-1": {
+        "AMIID": "ami-6b81980b"
+      },
+      "eu-west-3": {
+        "AMIID": "ami-ca75c4b7"
+      },
+      "eu-west-2": {
+        "AMIID": "ami-3622cf51"
+      },
+      "eu-west-1": {
+        "AMIID": "ami-c91624b0"
+      },
+      "eu-central-1": {
+        "AMIID": "ami-10e6c8fb"
+      },
+      "ap-northeast-2": {
+        "AMIID": "ami-7c69c112"
+      },
+      "ap-northeast-1": {
+        "AMIID": "ami-f3f8098c"
+      },
+      "ap-southeast-2": {
+        "AMIID": "ami-bc04d5de"
+      },
+      "ap-southeast-1": {
+        "AMIID": "ami-b75a6acb"
+      },
+      "ca-central-1": {
+        "AMIID": "ami-da6cecbe"
+      },
+      "ap-south-1": {
+        "AMIID": "ami-c7072aa8"
+      },
+      "sa-east-1": {
+        "AMIID": "ami-a1e2becd"
+      }
+    }
+  },
+
+  "Resources": {
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Minotaur Security Group",
+        "VpcId": {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${NetworkStack}-VPC"
+          }
+        },
+        "SecurityGroupIngress": [],
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "IpProtocol": "-1"
+          }
+        ]
+      }
+    },
+    "Cluster": {
+      "Type": "AWS::ECS::Cluster"
+    },
+    "ServiceMinotaur": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": "MinotaurInstance",
+      "Properties": {
+        "Cluster": {
+          "Ref": "Cluster"
+        },
+        "ServiceName": {
+          "Fn::Sub": "${AWS::StackName}"
+        },
+        "DesiredCount": 1,
+        "DeploymentConfiguration": {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50
+        },
+        "TaskDefinition": {
+          "Ref": "TaskDefinitionMinotaur"
+        }
+      }
+    },
+    "TaskDefinitionMinotaur": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "Family": {
+          "Fn::Sub": "${AWS::StackName}"
+        },
+        "NetworkMode": "host",
+        "ContainerDefinitions": [
+          {
+            "Name": {
+              "Fn::Sub": "${AWS::StackName}"
+            },
+            "Cpu": 512,
+            "Essential": true,
+            "Image": {
+              "Ref": "MinotaurImage"
+            },
+            "Memory": 7500,
+            "Environment": [
+              {
+                "Name": "MINOTAUR_RPC_SERVER",
+                "Value": { "Ref": "MinotaurRPCServer"}
+              },
+              {
+                "Name": "MINOTAUR_PASSWORD",
+                "Value": { "Ref": "MinotaurPassword"}
+              },
+              {
+                "Name": "MINOTAUR_HOST",
+                "Value": { "Ref": "MinotaurHost"}
+              },
+              {
+                "Name": "MINOTAUR_DB_NAME",
+                "Value": { "Ref": "MinotaurDatabase"}
+              },
+              {
+                "Name": "MINOTAUR_USERNAME",
+                "Value": { "Ref": "MinotaurUsername"}
+              }
+            ],
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "LogGroup"
+                },
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                },
+                "awslogs-stream-prefix": "container"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "${AWS::StackName}-log-group"
+        },
+        "RetentionInDays": {
+          "Fn::If": [
+            "IsProd",
+            "3653",
+            "3"
+          ]
+        }
+      }
+    },
+    "MinotaurInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSRegionToAMI",
+            {
+              "Ref": "AWS::Region"
+            },
+            "AMIID"
+          ]
+        },
+        "InstanceType": "m4.large",
+        "EbsOptimized": true,
+        "IamInstanceProfile": {
+          "Ref": "InstanceProfile"
+        },
+        "KeyName": {
+          "Fn::Sub": "ssh-${AWS::Region}"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroup"
+          }
+        ],
+        "SubnetId" :   {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${NetworkStack}-Subnet0"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}"
+            }
+          },
+          {
+            "Key": "Team",
+            "Value": "coinquery"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -x\n",
+                "service docker restart\n",
+                "echo ECS_CLUSTER=",
+                {
+                  "Ref": "Cluster"
+                },
+                " >> /etc/ecs/ecs.config\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "EC2Role"
+          }
+        ]
+      }
+    },
+    "EC2Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "ec2-policy",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecs:CreateCluster",
+                    "ecs:DeregisterContainerInstance",
+                    "ecs:DiscoverPollEndpoint",
+                    "ecs:Poll",
+                    "ecs:RegisterContainerInstance",
+                    "ecs:StartTelemetrySession",
+                    "ecs:Submit*",
+                    "ecr:*",
+                    "s3:*",
+                    "ec2:*",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "cloudformation:Describe*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
